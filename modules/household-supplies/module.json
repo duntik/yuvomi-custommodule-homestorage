@@ -1,0 +1,27 @@
+{
+  "manifestVersion": 1,
+  "id": "household-supplies",
+  "name": "Household supplies",
+  "version": "0.1.0",
+  "description": "Household consumables on their own page, built on the pantry: grouped by product, minimum and target per product, one-tap -1.",
+  "entry": "index.js",
+  "style": "style.css",
+  "icon": "package",
+  "accent": "#0EA5E9",
+  "i18n": { "defaultLocale": "en" },
+  "menu": {
+    "show": true,
+    "label": "Supplies",
+    "labelKey": "menu",
+    "icon": "package",
+    "order": 60
+  },
+  "page": {
+    "composition": "reading"
+  },
+  "capabilities": {
+    "permissions": {
+      "module": { "label": "Household supplies", "labelKey": "module", "icon": "package" }
+    }
+  }
+}

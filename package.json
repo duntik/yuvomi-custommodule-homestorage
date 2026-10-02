@@ -1,0 +1,8 @@
+{
+  "name": "yuvomi-custommodule-homestorage",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/logic.test.js"
+  }
+}

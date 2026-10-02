@@ -1,0 +1,193 @@
+/* Household supplies: only Yuvomi design tokens, no hard-coded colours. */
+
+.hs { display: grid; gap: var(--space-4); }
+
+.hs-empty { color: var(--color-text-secondary); margin: var(--space-4) 0; }
+
+/* ---- toolbar: view switch, low filter, search ---- */
+.hs-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.hs-seg {
+  display: inline-flex;
+  padding: var(--space-0h);
+  gap: var(--space-0h);
+  background: var(--color-surface-3);
+  border-radius: var(--radius-sm);
+}
+
+.hs-seg__btn,
+.hs-chip {
+  min-height: var(--target-base);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.hs-seg__btn.is-active {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.hs-chip {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.hs-chip.is-active {
+  background: var(--color-warning-light);
+  border-color: var(--color-warning);
+  color: var(--color-warning-ink);
+}
+
+.hs-search { flex: 1 1 10rem; min-width: 8rem; }
+
+/* ---- product list ---- */
+.hs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+
+.hs-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.hs-item--low { border-color: var(--color-warning); }
+.hs-item--empty { border-color: var(--color-danger); }
+
+.hs-item__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.hs-item__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--target-base);
+  display: grid;
+  gap: var(--space-0h);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.hs-item__name { font-weight: 600; color: var(--color-text-primary); overflow-wrap: anywhere; }
+.hs-item__meta { font-size: var(--text-sm); color: var(--color-text-secondary); }
+
+.hs-badge {
+  display: inline-block;
+  margin-inline-start: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  vertical-align: middle;
+}
+.hs-badge--low { background: var(--color-warning-light); color: var(--color-warning-ink); }
+.hs-badge--empty { background: var(--color-danger-light); color: var(--color-danger-ink); }
+
+/* ---- the -1 / +1 stepper: big targets, it is the main gesture ---- */
+.hs-stepper {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.hs-step {
+  width: var(--target-base);
+  height: var(--target-base);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  font-size: var(--text-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+.hs-step:hover:not(:disabled) { background: var(--color-surface-hover); }
+.hs-step:disabled { opacity: 0.4; cursor: default; }
+
+.hs-qty {
+  min-width: 4.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* ---- expanded product: batches and actions ---- */
+.hs-item__detail {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0 var(--space-3) var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.hs-batches { list-style: none; margin: 0; padding: var(--space-2) 0 0; display: grid; gap: var(--space-1); }
+
+.hs-batch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.hs-batch__where { flex: 1 1 auto; color: var(--color-text-primary); }
+.hs-batch__exp { font-size: var(--text-sm); color: var(--color-text-secondary); }
+
+.hs-stepper--small .hs-step { width: var(--target-sm); height: var(--target-sm); font-size: var(--text-base); }
+.hs-stepper--small .hs-qty { min-width: 4rem; font-weight: 400; }
+
+.hs-item__actions,
+.hs-panel__actions,
+.hs-prompt__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* ---- panels: add, levels, settings ---- */
+.hs-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+}
+.hs-panel__title { margin: 0; font-size: var(--text-lg); }
+
+.hs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3);
+}
+.hs-grid__wide { grid-column: 1 / -1; }
+
+.hs-checks { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.hs-check { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--target-sm); }
+
+/* ---- the low-stock prompt ---- */
+.hs-prompt {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-light);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  color: var(--color-warning-ink);
+}
+.hs-prompt p { margin: 0; }
+
+@media (max-width: 479px) {
+  .hs-item__row { flex-wrap: wrap; }
+  .hs-stepper { margin-inline-start: auto; }
+}
