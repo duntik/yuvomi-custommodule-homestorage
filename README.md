@@ -1,63 +1,57 @@
-# Хозяйство: модуль для Yuvomi
+﻿# Household supplies for Yuvomi
 
-Сторонний модуль для [Yuvomi](https://github.com/ulsklyc/yuvomi): отдельная страница для хозяйственных запасов. Зубная паста, туалетная бумага, таблетки для посудомойки и всё, что расходуется.
+A third-party module for [Yuvomi](https://github.com/ulsklyc/yuvomi) that gives household consumables their own page: toothpaste, toilet paper, dishwasher tablets, and other supplies you use up.
 
-*English summary below.*
+## Features
 
-## Что умеет
+- A separate **Supplies** menu item outside the Kitchen page.
+- Batches with the same name and unit grouped into one product, such as "Toothpaste: 9 units — bathroom: 1, attic: 8".
+- A minimum and target stock level per product. The minimum is compared with the total across all batches.
+- One-tap **−1** and **+1** buttons. Taking one unit uses the batch with the earliest expiry date first, then the smallest batch.
+- A restocking prompt when stock reaches the minimum: "3 left. Add 9 to shopping?"
+- **Household / Food / All** views and a **Running low** filter.
+- An English interface.
 
-- Отдельный пункт «Хозяйство» в меню, не внутри «Кухни».
-- Партии с одинаковым названием и единицей собираются в один товар: «Паста 9 шт.: ванная 1, чердак 8».
-- Минимум и цель на уровне товара. Минимум сравнивается с суммой всех партий.
-- Кнопки −1 и +1 прямо в списке. −1 берёт из партии, которая раньше портится, затем из самой маленькой.
-- Когда запас опускается до минимума, модуль предлагает докупить до цели: «Осталось 3. Добавить 9 в покупки?».
-- Переключатель «Хозяйство / Еда / Все» и фильтр «Заканчивается».
-- Интерфейс на русском и английском.
+## Data storage
 
-## Где хранятся данные
+The module does not maintain a separate inventory. Every batch is a regular Yuvomi pantry entry, so the data is shared with the household, remains visible in the standard Pantry section, and stays available if you uninstall the module.
 
-Модуль ничего не хранит сам. Каждая позиция это обычная запись в разделе «Запасы» Yuvomi. Поэтому данные общие для всей семьи, видны в обычных «Запасах» и остаются, даже если модуль удалить.
+The minimum and target are stored at the end of one batch's notes as `[stock min=3 target=12]`. Leave this marker intact.
 
-Минимум и цель записываются в конец заметки одной из партий в виде `[stock min=3 target=12]`. Эту метку не надо трогать руками.
+Only personal preferences are saved on your device: the selected view, which categories count as household supplies, and which shopping list to use.
 
-На устройстве запоминаются только личные настройки: выбранный вид, какие категории считать хозяйственными, какой список покупок использовать.
+## Installation
 
-## Установка
+### Through Yuvomi settings
 
-**Через настройки Yuvomi**, если ваша версия умеет ставить модули из интерфейса: «Настройки → Модули → Добавить свой модуль», вставьте ссылку
+If your Yuvomi version supports installing custom modules through the interface, open **Settings → Modules → Add custom module** and enter:
 
-```
+```text
 https://github.com/duntik/yuvomi-custommodule-homestorage
 ```
 
-Модуль установится выключенным. Включите его в «Настройки → Модули → Активные модули».
+The module is installed disabled. Enable it under **Settings → Modules → Active modules**.
 
-**Вручную**: скопируйте папку `modules/household-supplies` в папку модулей Yuvomi на сервере. Для Docker Compose это `./modules/` рядом с `docker-compose.yml`. Перезапуск не нужен: через полминуты модуль появится в «Активных модулях».
+### Manual installation
 
-Участникам семьи нужен доступ к разделу «Запасы», а для кнопки «В покупки» ещё и к разделу «Покупки».
+Copy `modules/household-supplies` into Yuvomi's modules directory on your server. For Docker Compose, this is `./modules/` next to `docker-compose.yml`. No restart is required; the module should appear under **Active modules** within about 30 seconds.
 
-## Структура
+Household members need access to **Pantry**. Adding items to a shopping list also requires access to **Shopping**.
 
+## Repository structure
+
+```text
+modules/household-supplies/  Module files installed into Yuvomi
+  module.json                Module manifest
+  index.js                   Page interface
+  logic.js                   Calculations without UI or network access
+  style.css                  Styles using Yuvomi design tokens
+  locales/en.json            English interface strings
+test/                        Logic tests
 ```
-modules/household-supplies/   сам модуль, только это попадает в Yuvomi
-  module.json                 описание модуля
-  index.js                    страница
-  logic.js                    расчёты без интерфейса и сети
-  style.css                   стили на токенах дизайна Yuvomi
-  locales/                    переводы
-test/                         тесты логики
-```
 
-## Проверка логики
+## Tests
 
-```
+```sh
 npm test
 ```
-
----
-
-## English summary
-
-A third-party module for Yuvomi that gives household consumables their own page. It groups pantry batches with the same name and unit into one product, keeps a minimum and a target per product, offers one-tap −1/+1, and suggests adding "target minus current" to the shopping list when stock reaches the minimum. It stores nothing of its own: every item is a regular Yuvomi pantry row, and the product minimum and target live in a `[stock min=N target=M]` marker at the end of one batch's notes.
-
-Install by copying `modules/household-supplies` into Yuvomi's modules folder, or, where supported, from Settings → Modules → Add custom module with this repository's URL.
