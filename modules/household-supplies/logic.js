@@ -12,7 +12,15 @@
  * is shared with the whole household and survives removing the module.
  */
 
-const MARKER_RE = /\s*\[stock\b([^\]]*)\]\s*$/;
+/** Yuvomi's limit for a pantry note (server/middleware/validate.js MAX_TEXT). */
+export const MAX_TEXT = 5000;
+
+/** A batch counts as "expires soon" this many days ahead, like the core pantry. */
+export const EXPIRY_SOON_DAYS = 7;
+
+// A marker needs at least one key=value pair: "[stock]" or "[stock foo]" in a
+// user's own text is just text. The marker has to be the last thing in the note.
+const MARKER_RE = /\s*\[stock((?:\s+\w+=[^\s\]]*)+)\s*\]\s*$/;
 
 /** Round like Yuvomi's pantry does: two decimals, never negative. */
 export function roundQty(n) {
@@ -45,15 +53,20 @@ export function parseMarker(notes) {
   };
 }
 
-/** Write the marker back, keeping the user's own text untouched. */
+/**
+ * Write the marker back, keeping the user's own text untouched. The result
+ * never exceeds MAX_TEXT: the user text is trimmed before the marker is lost.
+ */
 export function writeMarker(notes, { min = null, target = null } = {}) {
   const { rest } = parseMarker(notes);
   const parts = [];
   if (min !== null && min !== undefined && min !== '') parts.push(`min=${roundQty(min)}`);
   if (target !== null && target !== undefined && target !== '') parts.push(`target=${roundQty(target)}`);
-  const base = rest.trimEnd();
-  if (!parts.length) return base || null;
+  let base = rest.trimEnd();
+  if (!parts.length) return base.slice(0, MAX_TEXT) || null;
   const marker = `[stock ${parts.join(' ')}]`;
+  const room = MAX_TEXT - marker.length - 1;
+  if (base.length > room) base = base.slice(0, Math.max(0, room)).trimEnd();
   return base ? `${base} ${marker}` : marker;
 }
 
@@ -64,6 +77,22 @@ export function writeMarker(notes, { min = null, target = null } = {}) {
  */
 export function productKey(item) {
   return `${item.unit ?? ''}|${String(item.name ?? '').trim().toLocaleLowerCase()}`;
+}
+
+/**
+ * The category of a product whose batches disagree: the majority wins, a tie
+ * goes to the primary (marked) batch. One batch filed under "Food" by mistake
+ * must not move the whole product out of the household view.
+ */
+export function majorityCategory(batches, primary) {
+  const counts = new Map();
+  for (const b of batches) counts.set(b.category, (counts.get(b.category) ?? 0) + 1);
+  let best = primary.category;
+  let bestCount = counts.get(best) ?? 0;
+  for (const [category, count] of counts) {
+    if (count > bestCount) { best = category; bestCount = count; }
+  }
+  return best;
 }
 
 /**
@@ -96,7 +125,7 @@ export function groupProducts(items) {
       key,
       name: String(primary.name ?? '').trim(),
       unit: primary.unit,
-      category: primary.category,
+      category: majorityCategory(batches, primary),
       batches,
       primary,
       total,
@@ -105,6 +134,13 @@ export function groupProducts(items) {
     });
   }
   return products.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** The product whose name matches, ignoring case and surrounding spaces. */
+export function findByName(products, name) {
+  const wanted = String(name ?? '').trim().toLocaleLowerCase();
+  if (!wanted) return null;
+  return products.find((p) => p.name.toLocaleLowerCase() === wanted) ?? null;
 }
 
 /** 'empty' | 'low' | 'ok' */
@@ -146,6 +182,27 @@ export function pickBatchForTake(batches) {
   return candidates[0] ?? null;
 }
 
+/**
+ * Which batch a product-level "+1" goes to: the one "-1" last took from (the
+ * tube in use), otherwise the storage batch: expires last, then the largest,
+ * then the oldest.
+ */
+export function pickBatchForPut(batches, lastBatchId = null) {
+  const all = batches ?? [];
+  const last = lastBatchId === null || lastBatchId === undefined
+    ? null
+    : all.find((b) => String(b.id) === String(lastBatchId));
+  if (last) return last;
+  const sorted = [...all].sort((a, b) => {
+    const ea = a.expires_on ?? '9999-12-31';
+    const eb = b.expires_on ?? '9999-12-31';
+    if (ea !== eb) return ea > eb ? -1 : 1;
+    if (Number(a.quantity) !== Number(b.quantity)) return Number(b.quantity) - Number(a.quantity);
+    return a.id - b.id;
+  });
+  return sorted[0] ?? null;
+}
+
 /** Step size per unit, matching Yuvomi's pantry stepper. */
 export function stepFor(unit) {
   if (unit === 'g' || unit === 'ml') return 100;
@@ -153,10 +210,61 @@ export function stepFor(unit) {
   return 1;
 }
 
+/**
+ * What a stepper tap does to a batch and its product, without touching the
+ * server: the batch's next quantity, the product total afterwards, and how
+ * much the module should offer to buy when the tap crossed the minimum
+ * (0 when it did not).
+ */
+export function applyDelta(product, batch, delta) {
+  const next = roundQty(Number(batch.quantity) + delta);
+  const after = roundQty(product.total - Number(batch.quantity) + next);
+  let promptAmount = 0;
+  if (delta < 0 && crossedMinimum(product.total, after, product.min)) {
+    promptAmount = restockAmount({ ...product, total: after });
+  }
+  return { next, after, promptAmount };
+}
+
+/** Replace one pantry row by id (a PATCH response) without reloading the list. */
+export function mergeItem(items, row) {
+  if (!row || row.id === undefined || row.id === null) return items;
+  const list = items ?? [];
+  const at = list.findIndex((i) => i.id === row.id);
+  if (at === -1) return [...list, row];
+  return list.map((i, idx) => (idx === at ? { ...i, ...row } : i));
+}
+
+/** Whole calendar days from todayKey to dateKey (negative = in the past), or null. */
+export function daysUntil(dateKey, todayKey) {
+  const parse = (key) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(key ?? ''));
+    return m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : NaN;
+  };
+  const to = parse(dateKey);
+  const from = parse(todayKey);
+  if (!Number.isFinite(to) || !Number.isFinite(from)) return null;
+  return Math.round((to - from) / 86_400_000);
+}
+
+/** 'expired' | 'soon' | null, like the core pantry's expiry badge. */
+export function expiryStatus(dateKey, todayKey, soonDays = EXPIRY_SOON_DAYS) {
+  const days = daysUntil(dateKey, todayKey);
+  if (days === null) return null;
+  if (days < 0) return 'expired';
+  if (days <= soonDays) return 'soon';
+  return null;
+}
+
+/** True for a batch that is expired or expires within EXPIRY_SOON_DAYS. */
+export function expiresSoon(dateKey, todayKey, soonDays = EXPIRY_SOON_DAYS) {
+  return expiryStatus(dateKey, todayKey, soonDays) !== null;
+}
+
 /** Filter products by view ('household' | 'food' | 'all') and status ('low' | null). */
 export function filterProducts(products, { view = 'household', householdCategories = [], status = null, query = '' } = {}) {
   const household = new Set(householdCategories);
-  const q = query.trim().toLocaleLowerCase();
+  const q = String(query ?? '').trim().toLocaleLowerCase();
   return products.filter((p) => {
     if (view === 'household' && !household.has(p.category)) return false;
     if (view === 'food' && household.has(p.category)) return false;
@@ -164,4 +272,10 @@ export function filterProducts(products, { view = 'household', householdCategori
     if (q && !p.name.toLocaleLowerCase().includes(q)) return false;
     return true;
   });
+}
+
+/** Household categories from a comma separated string (widget option). */
+export function parseCategoryList(raw, fallback = []) {
+  const list = String(raw ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  return list.length ? list : fallback;
 }

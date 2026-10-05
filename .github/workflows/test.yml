@@ -1,0 +1,22 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: every JavaScript file parses
+        run: for f in modules/household-supplies/*.js modules/household-supplies/widgets/*.js scripts/*.mjs; do node --check "$f"; done
+      - name: manifest and locales are valid JSON
+        run: |
+          node -e "for (const f of ['modules/household-supplies/module.json','modules/household-supplies/locales/en.json','modules/household-supplies/locales/ru.json','modules/household-supplies/locales/de.json']) JSON.parse(require('fs').readFileSync(f,'utf8'))"
+      - name: every key used in the module exists in every locale
+        run: node scripts/check-locales.mjs

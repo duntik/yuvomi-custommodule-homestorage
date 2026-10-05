@@ -2,8 +2,8 @@
   "manifestVersion": 1,
   "id": "household-supplies",
   "name": "Household supplies",
-  "version": "0.1.0",
-  "description": "Household consumables on their own page, built on the pantry: grouped by product, minimum and target per product, one-tap -1.",
+  "version": "0.2.0",
+  "description": "Household consumables on their own page, built on the pantry: grouped by product, minimum and target per product, one-tap -1, a Running low dashboard widget.",
   "entry": "index.js",
   "style": "style.css",
   "icon": "package",
@@ -21,7 +21,32 @@
   },
   "capabilities": {
     "permissions": {
-      "module": { "label": "Household supplies", "labelKey": "module", "icon": "package" }
-    }
+      "module": { "label": "Household supplies", "labelKey": "module", "icon": "package" },
+      "widgets": [{ "id": "low-stock", "label": "Running low", "labelKey": "widgets.low_stock" }]
+    },
+    "widgets": [{
+      "id": "low-stock",
+      "entry": "widgets/low-stock.js",
+      "label": "Running low",
+      "labelKey": "widgets.low_stock",
+      "icon": "package",
+      "defaultSize": "1x2",
+      "defaultVisible": false,
+      "optionsSchema": {
+        "household_categories": {
+          "type": "string",
+          "title": "Household categories (comma separated)",
+          "titleKey": "options.household_categories",
+          "default": "Haushalt, Drogerie"
+        },
+        "view": {
+          "type": "string",
+          "enum": ["household", "food", "all"],
+          "title": "Show",
+          "titleKey": "options.view",
+          "default": "household"
+        }
+      }
+    }]
   }
 }
