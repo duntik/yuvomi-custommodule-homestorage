@@ -16,6 +16,7 @@
   "search": "Search",
   "empty": "Nothing here yet. Tap Add.",
   "emptyFiltered": "Nothing matches this filter.",
+  "emptyNoHousehold": "No category is marked as household yet. Open Settings and tick the categories that count as household supplies.",
   "minShort": "min {{n}}",
   "targetShort": "target {{n}}",
   "status_low": "low",

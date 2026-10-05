@@ -16,6 +16,7 @@
   "search": "Suchen",
   "empty": "Noch nichts da. Tippe auf Hinzufügen.",
   "emptyFiltered": "Nichts passt zu diesem Filter.",
+  "emptyNoHousehold": "Noch keine Kategorie gilt als Haushalt. Oeffne die Einstellungen und hake die Kategorien an, die zu den Haushaltsvorraeten zaehlen.",
   "minShort": "min. {{n}}",
   "targetShort": "Ziel {{n}}",
   "status_low": "fast leer",

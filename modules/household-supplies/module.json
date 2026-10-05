@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "household-supplies",
   "name": "Household supplies",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Household consumables on their own page, built on the pantry: grouped by product, minimum and target per product, one-tap -1, a Running low dashboard widget.",
   "entry": "index.js",
   "style": "style.css",
@@ -17,7 +17,7 @@
     "order": 60
   },
   "page": {
-    "composition": "reading"
+    "composition": "data"
   },
   "capabilities": {
     "permissions": {

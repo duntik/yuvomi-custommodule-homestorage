@@ -309,5 +309,24 @@ export function renderBody(state, ctx) {
     ${renderToolbar(state, ctx, lowCount)}
     ${visible.length
     ? `<ul class="hs-list">${visible.map((p) => renderProduct(p, state, ctx)).join('')}</ul>`
-    : `<p class="hs-empty">${esc(state.items.length ? tx('emptyFiltered') : tx('empty'))}</p>`}`;
+    : renderEmpty(state, products, ctx)}`;
+}
+
+/**
+ * The empty text names the actual reason. The household view stays empty when
+ * no existing category is marked as household (first visit on a device, or
+ * every marked category was renamed); the way out is the Settings panel, so
+ * the message carries a button to it instead of a bare "nothing matches".
+ */
+function renderEmpty(state, products, ctx) {
+  const { tx, esc } = ctx;
+  if (!state.items.length) return `<p class="hs-empty">${esc(tx('empty'))}</p>`;
+  const marked = state.prefs.householdCategories.filter((c) => state.categories.some((x) => x.name === c));
+  if (state.prefs.view === 'household' && !marked.length && !state.query && !state.lowOnly && products.length) {
+    return `<div class="hs-empty">
+      <p>${esc(tx('emptyNoHousehold'))}</p>
+      <button type="button" class="btn btn--secondary" data-act="settings">${esc(tx('settings'))}</button>
+    </div>`;
+  }
+  return `<p class="hs-empty">${esc(tx('emptyFiltered'))}</p>`;
 }

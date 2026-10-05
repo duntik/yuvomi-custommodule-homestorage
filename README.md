@@ -80,7 +80,7 @@ The page uses only Yuvomi's public helpers (`/api.js`, `/i18n.js`, `/utils/...`)
 
 ## Versioning
 
-Releases are tagged (`v0.2.0`); the installer in Yuvomi's settings picks the latest release. The `version` in `module.json` matches the tag.
+Releases are tagged (`v0.2.1`); the installer in Yuvomi's settings picks the latest release. The `version` in `module.json` matches the tag.
 
 ## License
 
