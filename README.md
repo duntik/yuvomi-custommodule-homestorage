@@ -35,15 +35,15 @@ Personal settings (the selected view, which categories count as household, which
 
 Requires Yuvomi 2.63 or newer (for the dashboard widget).
 
-**From the settings** (once [ulsklyc/yuvomi#1671](https://github.com/ulsklyc/yuvomi/pull/1671) ships): Settings -> Modules -> Add custom module, with the repository URL
+**From the settings** (Yuvomi 2.77.0 or newer). Installing from the settings is off until the server's operator allows it: set `MODULES_ALLOW_WEB_INSTALL=true` in the environment (for Docker Compose, in `.env`) and restart Yuvomi. Then an admin opens Settings -> Modules -> Add custom module and enters the repository URL
 
 ```
 https://github.com/duntik/yuvomi-custommodule-homestorage
 ```
 
-The module is installed disabled; switch it on under Settings -> Modules -> Active modules.
+The module is installed switched off. An admin switches it on under Settings -> Modules -> Active modules, from a browser session (an API token cannot approve it).
 
-**By hand** (works today): copy `modules/household-supplies` into Yuvomi's modules folder on the server (for Docker Compose that is `./modules/` next to `docker-compose.yml`). No restart is needed; the module appears under Active modules within a minute.
+**By hand** (any Yuvomi version from 2.63): copy `modules/household-supplies` into Yuvomi's modules folder on the server (for Docker Compose that is `./modules/` next to `docker-compose.yml`). No restart is needed; the module appears under Active modules within a minute.
 
 Members need access to the Pantry module to see the page, write access to change quantities, and write access to Shopping for the hand-over to the shopping list.
 
